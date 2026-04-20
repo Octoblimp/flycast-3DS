@@ -72,7 +72,7 @@ if(NOT APPLE AND (NOT UNIX OR CMAKE_SYSTEM_NAME MATCHES "DragonFly|FreeBSD|OpenB
 endif()
 
 option(ENABLE_CTEST "Enables unit tests" OFF)
-option(NINTENDO_3DS "Build for Nintendo 3DS homebrew" OFF)
+option(NINTENDO_3DS "Build for Nintendo 3DS homebrew" ON)
 option(ENABLE_OPROFILE "Enable OProfile" OFF)
 option(TEST_AUTOMATION "Enable test automation" OFF)
 option(ENABLE_LOG "Enable full logging" OFF)
@@ -101,6 +101,10 @@ option(ENABLE_DC_PROFILER "Build with support for target machine (SH4) profiler"
 option(ENABLE_FC_PROFILER "Build with support for host app (Flycast) profiler" OFF)
 option(USE_DISCORD "Use Discord Presence API" OFF)
 option(USE_LIBCDIO "Use libcdio for CDROM access" OFF)
+
+if(NOT NINTENDO_3DS)
+	message(FATAL_ERROR "This fork is 3DS-only. Reconfigure using the devkitPro 3DS toolchain.")
+endif()
 
 if(IOS AND NOT LIBRETRO)
 	set(USE_VULKAN OFF CACHE BOOL "Force vulkan off" FORCE)
