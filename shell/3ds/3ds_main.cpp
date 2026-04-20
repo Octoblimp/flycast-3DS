@@ -15,7 +15,7 @@
 
 static PrintConsole bottomConsole;
 static bool bottomConsoleInitialized = false;
-static std::array<u64, 8> bottomVmuLastChanged {};
+static std::array<u64, 8> bottomVmuLastChangedTimestamps {};
 static int bottomVmuLastIndex = -1;
 
 static bool vmuPixelOn(u32 pixel)
@@ -43,7 +43,7 @@ static void drawBottomScreenVmu()
 		return;
 	const int vmuIndex = config::FloatVMUs ? getActiveVmuIndex() : -1;
 	if (vmuIndex == bottomVmuLastIndex
-			&& (vmuIndex < 0 || bottomVmuLastChanged[vmuIndex] == vmuLastChanged[vmuIndex]))
+			&& (vmuIndex < 0 || bottomVmuLastChangedTimestamps[vmuIndex] == vmuLastChanged[vmuIndex]))
 		return;
 
 	consoleSelect(&bottomConsole);
@@ -64,13 +64,13 @@ static void drawBottomScreenVmu()
 			const u32 p1 = vmu_lcd_data[vmuIndex][y * 48 + x + 1];
 			const u32 p2 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x];
 			const u32 p3 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x + 1];
-			const int onCount = (int)vmuPixelOn(p0) + (int)vmuPixelOn(p1) + (int)vmuPixelOn(p2) + (int)vmuPixelOn(p3);
-			std::putchar(onCount >= 2 ? '#' : ' ');
+			const int litPixelCount = (int)vmuPixelOn(p0) + (int)vmuPixelOn(p1) + (int)vmuPixelOn(p2) + (int)vmuPixelOn(p3);
+			std::putchar(litPixelCount >= 2 ? '#' : ' ');
 		}
 		std::putchar('\n');
 	}
 	bottomVmuLastIndex = vmuIndex;
-	bottomVmuLastChanged[vmuIndex] = vmuLastChanged[vmuIndex];
+	bottomVmuLastChangedTimestamps[vmuIndex] = vmuLastChanged[vmuIndex];
 }
 
 int main(int argc, char *argv[])
