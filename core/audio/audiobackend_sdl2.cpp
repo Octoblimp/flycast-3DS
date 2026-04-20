@@ -30,7 +30,7 @@ class SDLAudioBackend : AudioBackend
 	std::atomic<size_t> rec_write;
 #ifdef __3DS__
 	u8 *micBuffer = nullptr;
-	// 0x2000 provides a small, page-aligned ring buffer while staying within MIC shared memory constraints.
+	// libctru micInit requires 0x1000 alignment; use 0x2000 bytes to keep a small, aligned ring.
 	static constexpr u32 MicBufferSize = 0x2000;
 	static constexpr u32 MicServiceHeaderBytes = 4;
 	static constexpr u32 MicSampleRateThreshold = 9000;
@@ -237,7 +237,7 @@ public:
 		micActive = true;
 		micReadOffset = 0;
 		micSampleDataSize = micGetSampleDataSize();
-		// If MIC reports an invalid range, use the expected writable ring region.
+		// If MIC reports 0/out-of-range, use the ring region explicitly provided to MICU_StartSampling.
 		if (micSampleDataSize == 0 || micSampleDataSize > MicBufferSize)
 			micSampleDataSize = MicRingBufferSize;
 

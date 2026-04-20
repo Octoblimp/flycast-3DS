@@ -17,6 +17,8 @@ static PrintConsole bottomConsole;
 static bool bottomConsoleInitialized = false;
 static std::array<u64, 8> bottomVmuLastChangedTimestamps {};
 static int bottomVmuLastIndex = -1;
+static constexpr u32 VmuPixelBrightnessThreshold = 384;
+static constexpr int MinLitPixelsForBlock = 2;
 
 static bool vmuPixelOn(u32 pixel)
 {
@@ -24,7 +26,7 @@ static bool vmuPixelOn(u32 pixel)
 	const u32 g = (pixel >> 8) & 0xff;
 	const u32 b = (pixel >> 16) & 0xff;
 	const u32 a = (pixel >> 24) & 0xff;
-	return a != 0 && (r + g + b) >= 384;
+	return a != 0 && (r + g + b) >= VmuPixelBrightnessThreshold;
 }
 
 static int getActiveVmuIndex()
@@ -65,7 +67,7 @@ static void drawBottomScreenVmu()
 			const u32 p2 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x];
 			const u32 p3 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x + 1];
 			const int litPixelCount = (int)vmuPixelOn(p0) + (int)vmuPixelOn(p1) + (int)vmuPixelOn(p2) + (int)vmuPixelOn(p3);
-			std::putchar(litPixelCount >= 2 ? '#' : ' ');
+			std::putchar(litPixelCount >= MinLitPixelsForBlock ? '#' : ' ');
 		}
 		std::putchar('\n');
 	}
