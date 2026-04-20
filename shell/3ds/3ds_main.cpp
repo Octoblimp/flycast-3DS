@@ -8,10 +8,76 @@
 #include "oslib/directory.h"
 #include "oslib/i18n.h"
 #include "cfg/option.h"
+#include "rend/osd.h"
+
+#include <array>
+#include <cstdio>
+
+static PrintConsole bottomConsole;
+static bool bottomConsoleInitialized = false;
+static std::array<u64, 8> bottomVmuLastChanged {};
+static int bottomVmuLastIndex = -1;
+
+static bool vmuPixelOn(u32 pixel)
+{
+	const u32 r = pixel & 0xff;
+	const u32 g = (pixel >> 8) & 0xff;
+	const u32 b = (pixel >> 16) & 0xff;
+	const u32 a = (pixel >> 24) & 0xff;
+	return a != 0 && (r + g + b) >= 384;
+}
+
+static int getActiveVmuIndex()
+{
+	for (int i = 0; i < 8; i++)
+	{
+		if (vmu_lcd_status[i])
+			return i;
+	}
+	return -1;
+}
+
+static void drawBottomScreenVmu()
+{
+	if (!bottomConsoleInitialized)
+		return;
+	const int vmuIndex = config::FloatVMUs ? getActiveVmuIndex() : -1;
+	if (vmuIndex == bottomVmuLastIndex
+			&& (vmuIndex < 0 || bottomVmuLastChanged[vmuIndex] == vmuLastChanged[vmuIndex]))
+		return;
+
+	consoleSelect(&bottomConsole);
+	consoleClear();
+	if (vmuIndex < 0)
+	{
+		std::printf("Flycast 3DS\n\nNo active VMU display.");
+		bottomVmuLastIndex = vmuIndex;
+		return;
+	}
+
+	std::printf("VMU %d (bottom)\n\n", vmuIndex + 1);
+	for (int y = 0; y < 32; y += 2)
+	{
+		for (int x = 0; x < 48; x += 2)
+		{
+			const u32 p0 = vmu_lcd_data[vmuIndex][y * 48 + x];
+			const u32 p1 = vmu_lcd_data[vmuIndex][y * 48 + x + 1];
+			const u32 p2 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x];
+			const u32 p3 = vmu_lcd_data[vmuIndex][(y + 1) * 48 + x + 1];
+			const int onCount = (int)vmuPixelOn(p0) + (int)vmuPixelOn(p1) + (int)vmuPixelOn(p2) + (int)vmuPixelOn(p3);
+			std::putchar(onCount >= 2 ? '#' : ' ');
+		}
+		std::putchar('\n');
+	}
+	bottomVmuLastIndex = vmuIndex;
+	bottomVmuLastChanged[vmuIndex] = vmuLastChanged[vmuIndex];
+}
 
 int main(int argc, char *argv[])
 {
 	gfxInitDefault();
+	consoleInit(GFX_BOTTOM, &bottomConsole);
+	bottomConsoleInitialized = true;
 
 	Result romfsRc = romfsInit();
 	if (R_FAILED(romfsRc))
@@ -31,7 +97,7 @@ int main(int argc, char *argv[])
 	add_system_data_dir("./");
 	add_system_data_dir("data/");
 
-	// 3DS virtual VDU default: keep VMU LCD overlays enabled in-game.
+	// 3DS virtual VMU default: keep VMU LCD overlays enabled in-game.
 	config::FloatVMUs = true;
 
 	if (flycast_init(argc, argv))
@@ -56,6 +122,7 @@ int main(int argc, char *argv[])
 void os_DoEvents()
 {
 	hidScanInput();
+	drawBottomScreenVmu();
 	if (!aptMainLoop())
 		dc_exit();
 }
