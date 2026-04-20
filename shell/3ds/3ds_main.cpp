@@ -97,7 +97,7 @@ int main(int argc, char *argv[])
 	add_system_data_dir("./");
 	add_system_data_dir("data/");
 
-	// 3DS virtual VMU default: keep VMU LCD overlays enabled in-game.
+	// 3DS VMU default: keep VMU LCD overlays enabled in-game.
 	config::FloatVMUs = true;
 
 	if (flycast_init(argc, argv))

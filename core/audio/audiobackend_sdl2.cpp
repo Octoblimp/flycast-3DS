@@ -31,6 +31,10 @@ class SDLAudioBackend : AudioBackend
 #ifdef __3DS__
 	u8 *micBuffer = nullptr;
 	static constexpr u32 MicBufferSize = 0x2000;
+	static constexpr u32 MicServiceHeaderBytes = 4;
+	static constexpr u32 MicEightKHzThreshold = 9000;
+	static constexpr u32 MicSampleRate8Khz = 8180;
+	static constexpr u32 MicSampleRate11Khz = 10910;
 	u32 micSampleDataSize = 0;
 	u32 micReadOffset = 0;
 	bool micInitialized = false;
@@ -217,8 +221,8 @@ public:
 		MICU_SetPower(true);
 		MICU_SetAllowShellClosed(true);
 
-		const MICU_SampleRate rate = sampling_freq <= 9000 ? MICU_SAMPLE_RATE_8180 : MICU_SAMPLE_RATE_10910;
-		rc = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, rate, 0, MicBufferSize - 4, true);
+		const MICU_SampleRate rate = sampling_freq <= MicEightKHzThreshold ? MICU_SAMPLE_RATE_8180 : MICU_SAMPLE_RATE_10910;
+		rc = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, rate, 0, MicBufferSize - MicServiceHeaderBytes, true);
 		if (R_FAILED(rc))
 		{
 			ERROR_LOG(AUDIO, "3DS MIC: MICU_StartSampling failed: 0x%08lx", (unsigned long)rc);
@@ -232,9 +236,10 @@ public:
 		micReadOffset = 0;
 		micSampleDataSize = micGetSampleDataSize();
 		if (micSampleDataSize == 0 || micSampleDataSize > MicBufferSize)
-			micSampleDataSize = MicBufferSize - 4;
+			micSampleDataSize = MicBufferSize - MicServiceHeaderBytes;
 
-		INFO_LOG(AUDIO, "3DS MIC: capture started (%u bytes ring, target %u Hz)", micSampleDataSize, sampling_freq);
+		INFO_LOG(AUDIO, "3DS MIC: capture started (%u bytes ring, target %u Hz, native %u/%u)",
+				micSampleDataSize, sampling_freq, MicSampleRate8Khz, MicSampleRate11Khz);
 		return true;
 #else
 		rec_write = 0;
