@@ -36,6 +36,7 @@ class SDLAudioBackend : AudioBackend
 	static constexpr u32 MicSampleRateThreshold = 9000;
 	static constexpr u32 MicSampleRate8Khz = 8180;
 	static constexpr u32 MicSampleRate10910 = 10910;
+	static constexpr u32 MicBytesPerSample = sizeof(s16);
 	static constexpr u32 MicRingBufferSize = MicBufferSize - MicServiceHeaderBytes;
 	u32 micSampleDataSize = 0;
 	u32 micReadOffset = 0;
@@ -313,7 +314,7 @@ public:
 		u32 available = writeOffset >= micReadOffset
 			? writeOffset - micReadOffset
 			: micSampleDataSize - micReadOffset + writeOffset;
-		u32 bytesRequested = samples * sizeof(s16);
+		u32 bytesRequested = samples * MicBytesPerSample;
 		u32 bytesToCopy = std::min(available, bytesRequested);
 		if (bytesToCopy == 0)
 			return 0;
@@ -324,7 +325,7 @@ public:
 			memcpy((u8 *)frame + chunk, micBuffer, bytesToCopy - chunk);
 
 		micReadOffset = (micReadOffset + bytesToCopy) % micSampleDataSize;
-		return bytesToCopy / sizeof(s16);
+		return bytesToCopy / MicBytesPerSample;
 #else
 		u32 count = 0;
 		samples *= 2;
