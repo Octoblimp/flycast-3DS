@@ -59,7 +59,7 @@ $ cmake --build build-3ds --target install
 
 Notes:
 - Dreamcast microphone support uses the emulator microphone device path.
-- VMU overlays are enabled by default on 3DS to provide an on-device virtual VDU workflow.
+- VMU overlays are enabled by default on 3DS to provide an on-device virtual VMU workflow.
 
 ### Binaries ![android](https://flyinghead.github.io/flycast-builds/android.jpg) ![windows](https://flyinghead.github.io/flycast-builds/windows.png) ![linux](https://flyinghead.github.io/flycast-builds/ubuntu.png) ![apple](https://flyinghead.github.io/flycast-builds/apple.png) ![switch](https://flyinghead.github.io/flycast-builds/switch.png) ![xbox](https://flyinghead.github.io/flycast-builds/xbox.png)
 
