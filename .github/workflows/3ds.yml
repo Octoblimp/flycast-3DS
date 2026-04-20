@@ -1,0 +1,44 @@
+name: Nintendo 3DS
+
+on:
+  push:
+    branches-ignore:
+      - 'l10n_**'
+  pull_request:
+
+jobs:
+  build:
+    name: 3DS standalone
+    runs-on: ubuntu-latest
+    container: devkitpro/devkitarm:latest
+
+    steps:
+      - name: Set up build environment
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install ccache cmake ninja-build
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          submodules: recursive
+
+      - name: Mark git repository as safe
+        run: git config --global --add safe.directory $PWD
+
+      - uses: actions/cache@v5
+        with:
+          path: ~/.ccache
+          key: ccache-3ds-${{ github.sha }}
+          restore-keys: ccache-3ds-
+
+      - name: CMake
+        run: |
+          arm-none-eabi-cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=artifact -DNINTENDO_3DS=ON -G Ninja
+          cmake --build build --config Release --target install
+
+      - uses: actions/upload-artifact@v6
+        with:
+          name: flycast-3ds
+          path: |
+            artifact/bin

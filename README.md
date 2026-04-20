@@ -3,6 +3,7 @@
 [![Android CI](https://github.com/flyinghead/flycast/actions/workflows/android.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/android.yml)
 [![C/C++ CI](https://github.com/flyinghead/flycast/actions/workflows/c-cpp.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/c-cpp.yml)
 [![Nintendo Switch CI](https://github.com/flyinghead/flycast/actions/workflows/switch.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/switch.yml)
+[![Nintendo 3DS CI](https://github.com/flyinghead/flycast/actions/workflows/3ds.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/3ds.yml)
 [![Windows UWP CI](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml)
 [![BSD CI](https://github.com/flyinghead/flycast/actions/workflows/bsd.yml/badge.svg)](https://github.com/flyinghead/flycast/actions/workflows/bsd.yml)
 
@@ -45,6 +46,20 @@ Due to persistent harassment from an iOS user, support for this platform has bee
 ### Xbox One/Series ![xbox logo](https://flyinghead.github.io/flycast-builds/xbox.png)
 
 Grab the latest build from [**the builds page**](https://flyinghead.github.io/flycast-builds/), or the [**GitHub Actions**](https://github.com/flyinghead/flycast/actions/workflows/uwp.yml). Then install it using the **Xbox Device Portal**.
+
+### Nintendo 3DS (Homebrew)
+
+Experimental 3DS homebrew support is available via devkitPro/devkitARM.
+
+Build:
+```
+$ arm-none-eabi-cmake -B build-3ds -G Ninja -DNINTENDO_3DS=ON -DCMAKE_BUILD_TYPE=Release
+$ cmake --build build-3ds --target install
+```
+
+Notes:
+- Dreamcast microphone support uses the emulator microphone device path.
+- VMU overlays are enabled by default on 3DS to provide an on-device virtual VDU workflow.
 
 ### Binaries ![android](https://flyinghead.github.io/flycast-builds/android.jpg) ![windows](https://flyinghead.github.io/flycast-builds/windows.png) ![linux](https://flyinghead.github.io/flycast-builds/ubuntu.png) ![apple](https://flyinghead.github.io/flycast-builds/apple.png) ![switch](https://flyinghead.github.io/flycast-builds/switch.png) ![xbox](https://flyinghead.github.io/flycast-builds/xbox.png)
 

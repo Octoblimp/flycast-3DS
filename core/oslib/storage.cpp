@@ -424,6 +424,8 @@ std::string AllStorage::getDefaultDirectory()
 	}
 #elif defined(__SWITCH__)
 	directory = "/";
+#elif defined(__3DS__)
+	directory = "sdmc:/";
 #endif
 	if (directory.empty())
 	{
