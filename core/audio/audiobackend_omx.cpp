@@ -186,7 +186,7 @@ public:
 		}
 		waitForState(OMX_StateIdle);
 
-		// Check if we're in a state able to recieve buffers
+		// Check if we're in a state able to receive buffers
 		OMX_STATETYPE state;
 		error = OMX_GetState(omx_handle, &state);
 		if (error != OMX_ErrorNone || !(state == OMX_StateIdle || state == OMX_StateExecuting || state == OMX_StatePause))
