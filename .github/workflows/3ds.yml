@@ -6,6 +6,9 @@ on:
       - 'l10n_**'
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: 3DS standalone
