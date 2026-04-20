@@ -1,23 +1,26 @@
 {
-    "version": 2,
+    "version": 3,
     "configurePresets": [
         {
-            "name": "clang",
+            "name": "3ds-devkitpro",
+            "displayName": "Nintendo 3DS (devkitPro/MSYS2)",
             "generator": "Ninja",
-            "binaryDir": "build-clang",
+            "binaryDir": "build-3ds",
+            "toolchainFile": "$env{DEVKITPRO}/cmake/3DS.cmake",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+                "NINTENDO_3DS": "ON",
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "artifact"
             }
-        },
+        }
+    ],
+    "buildPresets": [
         {
-            "name": "gcc",
-            "generator": "Ninja",
-            "binaryDir": "build-gcc",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-            }
+            "name": "3ds-devkitpro",
+            "configurePreset": "3ds-devkitpro",
+            "targets": [
+                "install"
+            ]
         }
     ]
 }

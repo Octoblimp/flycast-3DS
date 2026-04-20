@@ -49,11 +49,17 @@ Grab the latest build from [**the builds page**](https://flyinghead.github.io/fl
 
 ### Nintendo 3DS (Homebrew)
 
-Experimental 3DS homebrew support is available via devkitPro/devkitARM.
+This fork targets Nintendo 3DS only and is built with devkitPro/devkitARM.
 
-Build:
+Build (MSYS2 + devkitPro shell):
 ```
-$ arm-none-eabi-cmake -B build-3ds -G Ninja -DNINTENDO_3DS=ON -DCMAKE_BUILD_TYPE=Release
+$ cmake --preset 3ds-devkitpro
+$ cmake --build --preset 3ds-devkitpro
+```
+
+Equivalent manual configure command:
+```
+$ cmake -B build-3ds -G Ninja -DCMAKE_TOOLCHAIN_FILE="$DEVKITPRO/cmake/3DS.cmake" -DNINTENDO_3DS=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=artifact
 $ cmake --build build-3ds --target install
 ```
 
