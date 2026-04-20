@@ -290,6 +290,8 @@ static void rend_create_renderer()
 	switch (config::RendererType)
 	{
 	default:
+		renderer = rend_norend();
+		break;
 #ifdef USE_OPENGL
 	case RenderType::OpenGL:
 		renderer = rend_GLES2();

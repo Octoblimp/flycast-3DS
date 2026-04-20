@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <atomic>
 #include <mutex>
+#ifdef __3DS__
+#include <3ds.h>
+#include <malloc.h>
+#endif
 
 class SDLAudioBackend : AudioBackend
 {
@@ -24,6 +28,21 @@ class SDLAudioBackend : AudioBackend
 	u8 recordbuf[480 * 4];
 	std::atomic<size_t> rec_read;
 	std::atomic<size_t> rec_write;
+#ifdef __3DS__
+	u8 *micBuffer = nullptr;
+	// libctru micInit requires 0x1000 alignment; use 0x2000 bytes to keep a small, aligned ring.
+	static constexpr u32 MicBufferSize = 0x2000;
+	static constexpr u32 MicServiceHeaderBytes = 4;
+	static constexpr u32 MicSampleRateThreshold = 9000;
+	static constexpr u32 MicSampleRate8Khz = 8180;
+	static constexpr u32 MicSampleRate10910 = 10910;
+	static constexpr u32 MicBytesPerSample = sizeof(s16);
+	static constexpr u32 MicRingBufferSize = MicBufferSize - MicServiceHeaderBytes;
+	u32 micSampleDataSize = 0;
+	u32 micReadOffset = 0;
+	bool micInitialized = false;
+	bool micActive = false;
+#endif
 
 	static void audioCallback(void* userdata, Uint8* stream, int len)
 	{
@@ -184,6 +203,49 @@ public:
 
 	bool initRecord(u32 sampling_freq) override
 	{
+#ifdef __3DS__
+		termRecord();
+		micBuffer = (u8 *)memalign(0x1000, MicBufferSize);
+		if (micBuffer == nullptr)
+		{
+			ERROR_LOG(AUDIO, "3DS MIC: couldn't allocate aligned capture buffer");
+			return false;
+		}
+
+		Result rc = micInit(micBuffer, MicBufferSize);
+		if (R_FAILED(rc))
+		{
+			ERROR_LOG(AUDIO, "3DS MIC: micInit failed: 0x%08lx", (unsigned long)rc);
+			free(micBuffer);
+			micBuffer = nullptr;
+			return false;
+		}
+		micInitialized = true;
+		MICU_SetPower(true);
+		MICU_SetAllowShellClosed(true);
+
+		const MICU_SampleRate rate = sampling_freq <= MicSampleRateThreshold ? MICU_SAMPLE_RATE_8180 : MICU_SAMPLE_RATE_10910;
+		rc = MICU_StartSampling(MICU_ENCODING_PCM16_SIGNED, rate, 0, MicRingBufferSize, true);
+		if (R_FAILED(rc))
+		{
+			ERROR_LOG(AUDIO, "3DS MIC: MICU_StartSampling failed: 0x%08lx", (unsigned long)rc);
+			micExit();
+			micInitialized = false;
+			free(micBuffer);
+			micBuffer = nullptr;
+			return false;
+		}
+		micActive = true;
+		micReadOffset = 0;
+		micSampleDataSize = micGetSampleDataSize();
+		// If MIC reports 0/out-of-range, use the ring region explicitly provided to MICU_StartSampling.
+		if (micSampleDataSize == 0 || micSampleDataSize > MicBufferSize)
+			micSampleDataSize = MicRingBufferSize;
+
+		INFO_LOG(AUDIO, "3DS MIC: capture started (%u bytes ring, target %u Hz, native %u/%u)",
+				micSampleDataSize, sampling_freq, MicSampleRate8Khz, MicSampleRate10910);
+		return true;
+#else
 		rec_write = 0;
 		rec_read = 0;
 
@@ -205,20 +267,66 @@ public:
 		INFO_LOG(AUDIO, "SDL2: opened audio capture device");
 
 		return true;
+#endif
 	}
 
 	void termRecord() override
 	{
+#ifdef __3DS__
+		if (micActive)
+		{
+			MICU_StopSampling();
+			micActive = false;
+		}
+		if (micInitialized)
+		{
+			MICU_SetPower(false);
+			micExit();
+			micInitialized = false;
+		}
+		if (micBuffer != nullptr)
+		{
+			free(micBuffer);
+			micBuffer = nullptr;
+		}
+		micSampleDataSize = 0;
+		micReadOffset = 0;
+#else
 		if (recorddev != 0)
 		{
 			SDL_PauseAudioDevice(recorddev, 1);
 			SDL_CloseAudioDevice(recorddev);
 			recorddev = 0;
 		}
+#endif
 	}
 
 	u32 record(void* frame, u32 samples) override
 	{
+#ifdef __3DS__
+		if (!micActive || micBuffer == nullptr || micSampleDataSize == 0)
+			return 0;
+
+		u32 writeOffset = micGetLastSampleOffset();
+		if (writeOffset >= micSampleDataSize)
+			writeOffset %= micSampleDataSize;
+
+		u32 available = writeOffset >= micReadOffset
+			? writeOffset - micReadOffset
+			: micSampleDataSize - micReadOffset + writeOffset;
+		u32 bytesRequested = samples * MicBytesPerSample;
+		u32 bytesToCopy = std::min(available, bytesRequested);
+		if (bytesToCopy == 0)
+			return 0;
+
+		u32 chunk = std::min(bytesToCopy, micSampleDataSize - micReadOffset);
+		memcpy(frame, micBuffer + micReadOffset, chunk);
+		if (bytesToCopy > chunk)
+			memcpy((u8 *)frame + chunk, micBuffer, bytesToCopy - chunk);
+
+		micReadOffset = (micReadOffset + bytesToCopy) % micSampleDataSize;
+		return bytesToCopy / MicBytesPerSample;
+#else
 		u32 count = 0;
 		samples *= 2;
 		while (samples > 0)
@@ -235,9 +343,9 @@ public:
 		DEBUG_LOG(AUDIO, "SDL2: sdl2_record len %d ret %d write %zd read %zd", samples * 2, count, (size_t)rec_write, (size_t)rec_read);
 
 		return count / 2;
+#endif
 	}
 };
 static SDLAudioBackend sdlAudioBackend;
 
 #endif
-

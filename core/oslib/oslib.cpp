@@ -399,7 +399,7 @@ std::string getScreenshotsPath();
 
 #endif
 
-#if !defined(__ANDROID__) && !defined(TARGET_UWP) && !defined(TARGET_IPHONE) && !defined(__SWITCH__)
+#if !defined(__ANDROID__) && !defined(TARGET_UWP) && !defined(TARGET_IPHONE) && !defined(__SWITCH__) && !defined(__3DS__)
 
 void saveScreenshot(const std::string& name, const std::vector<u8>& data)
 {

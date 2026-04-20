@@ -42,6 +42,10 @@
 // iOS simulator
 #define TARGET_NO_REC
 #endif
+
+#if defined(__3DS__)
+#define TARGET_NO_REC
+#endif
 #if defined(TARGET_MAC) && HOST_CPU == CPU_ARM64
 #define TARGET_ARM_MAC
 #endif
@@ -110,7 +114,7 @@
 #endif
 
 #if !defined(__ANDROID__) && !defined(TARGET_IPHONE) && !defined(TARGET_UWP) \
-	&& !defined(__SWITCH__) && !defined(LIBRETRO) && !defined(__NetBSD__) && !defined(__OpenBSD__)
+	&& !defined(__SWITCH__) && !defined(__3DS__) && !defined(LIBRETRO) && !defined(__NetBSD__) && !defined(__OpenBSD__)
 #define NAOMI_MULTIBOARD
 #endif
 
