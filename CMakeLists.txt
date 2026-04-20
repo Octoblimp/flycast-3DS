@@ -103,7 +103,7 @@ option(USE_DISCORD "Use Discord Presence API" OFF)
 option(USE_LIBCDIO "Use libcdio for CDROM access" OFF)
 
 if(NOT NINTENDO_3DS)
-	message(FATAL_ERROR "This fork is 3DS-only. Reconfigure with -DNINTENDO_3DS=ON using the devkitPro 3DS toolchain.")
+	message(FATAL_ERROR "This fork is 3DS-only. Reconfigure using the devkitPro 3DS toolchain.")
 endif()
 
 if(IOS AND NOT LIBRETRO)
