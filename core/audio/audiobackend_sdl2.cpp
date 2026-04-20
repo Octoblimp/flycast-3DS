@@ -34,7 +34,7 @@ class SDLAudioBackend : AudioBackend
 	static constexpr u32 MicServiceHeaderBytes = 4;
 	static constexpr u32 MicSampleRateThreshold = 9000;
 	static constexpr u32 MicSampleRate8Khz = 8180;
-	static constexpr u32 MicSampleRate11Khz = 10910;
+	static constexpr u32 MicSampleRate10910 = 10910;
 	static constexpr u32 MicRingBufferSize = MicBufferSize - MicServiceHeaderBytes;
 	u32 micSampleDataSize = 0;
 	u32 micReadOffset = 0;
@@ -240,7 +240,7 @@ public:
 			micSampleDataSize = MicRingBufferSize;
 
 		INFO_LOG(AUDIO, "3DS MIC: capture started (%u bytes ring, target %u Hz, native %u/%u)",
-				micSampleDataSize, sampling_freq, MicSampleRate8Khz, MicSampleRate11Khz);
+				micSampleDataSize, sampling_freq, MicSampleRate8Khz, MicSampleRate10910);
 		return true;
 #else
 		rec_write = 0;
