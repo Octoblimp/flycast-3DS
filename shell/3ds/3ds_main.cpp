@@ -11,7 +11,11 @@
 
 int main(int argc, char *argv[])
 {
-	romfsInit();
+	gfxInitDefault();
+
+	Result romfsRc = romfsInit();
+	if (R_FAILED(romfsRc))
+		WARN_LOG(BOOT, "romfsInit failed: 0x%08lx", (unsigned long)romfsRc);
 
 	LogManager::Init();
 	i18n::init();
@@ -42,13 +46,16 @@ int main(int argc, char *argv[])
 	}
 
 	flycast_term();
-	romfsExit();
+	if (R_SUCCEEDED(romfsRc))
+		romfsExit();
+	gfxExit();
 
 	return 0;
 }
 
 void os_DoEvents()
 {
+	hidScanInput();
 	if (!aptMainLoop())
 		dc_exit();
 }

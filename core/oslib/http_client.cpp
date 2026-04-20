@@ -20,7 +20,37 @@
 #if !defined(__ANDROID__) && !defined(__APPLE__)
 #include "http_client.h"
 
-#ifdef _WIN32
+#if defined(__3DS__)
+namespace http {
+
+void init()
+{
+}
+
+int get(const std::string&, std::vector<u8>& content, std::string& contentType)
+{
+	content.clear();
+	contentType.clear();
+	return 503;
+}
+
+int post(const std::string&, const char *, const char *, std::vector<u8>& reply)
+{
+	reply.clear();
+	return 503;
+}
+
+int post(const std::string&, const std::vector<PostField>&)
+{
+	return 503;
+}
+
+void term()
+{
+}
+
+}
+#elif defined(_WIN32)
 #ifndef TARGET_UWP
 #include "stdclass.h"
 #include <windows.h>
